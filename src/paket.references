@@ -1,3 +1,6 @@
 FSharp.Core
 Fable.Core
 Fable.Elmish.React
+Fable.reaction
+Fsharp.Control.AsyncRx
+System.Reactive

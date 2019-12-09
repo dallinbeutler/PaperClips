@@ -1,4 +1,4 @@
-A counter demo of [Elmish](https://github.com/fable-compiler/fable-elmish).
+An exercise in getting comfortable with [Elmish](https://github.com/fable-compiler/fable-elmish).
 ========
 
 This is a port of [Universal Paperclips](https://www.decisionproblem.com/paperclips/) implemented in F# and targeting Fable and React.

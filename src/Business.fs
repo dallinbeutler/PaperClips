@@ -8,7 +8,7 @@ type Model =
     sold : int
     unsold : int
     clipPrice : float
-    demand: double
+    demand: float
     marketingLvl : int
     lvlUpCost:float
     timerTicking:bool
@@ -21,10 +21,14 @@ type Msg =
 //| ClipsSold of int
 | TimeTick //int is number of clips
 | ClipMade of int
+| PurchaseMade of int
+
+let buy (state:Model) cost = 
+  {state with funds = state.funds - cost }
 
 let init() : Model = 
   {
-    funds = 0.0
+    funds = 30.0
     sold = 0
     unsold = 0
     clipPrice = 0.25
@@ -43,10 +47,13 @@ open System
 let r = Random()
 
 let tickUpdate state =  
-  let newsold = int <| (r.NextDouble() * state.demand)
-  let unsold = state.unsold - newsold
-  let sold = state.sold + newsold
-  {state with unsold = unsold; sold = sold}
+  if state.unsold = 0 
+  then state
+  else
+    let newsold = int <| (r.NextDouble() * ( state.demand / state.clipPrice ))
+    let unsold = state.unsold - newsold
+    let sold = state.sold + newsold
+    {state with unsold = unsold; sold = sold; funds = state.funds + (state.clipPrice * (float newsold) )}
 // UPDATE
 let update (msg:Msg) (state:Model) =  
   match msg with
@@ -55,7 +62,7 @@ let update (msg:Msg) (state:Model) =
   | ImproveMarketing -> {state with marketingLvl = state.marketingLvl + 1}
   | TimeTick-> tickUpdate state  
   | ClipMade count -> {state with unsold = state.unsold + count} 
-
+  | PurchaseMade amount-> {state with funds= state.funds - float amount}
 open Fable.React
 open Fable.React.Props
 

@@ -2,14 +2,11 @@ module App
 open Elmish
 type Model = 
   {
-    curAmount : int
-    raiseAmount:int
     business : Business.Model
     manu : Manufacturing.Model
   }
 
 type Msg =
-| Increment
 | Business of Business.Msg
 | Manufact of Manufacturing.Msg
 | Tick
@@ -17,23 +14,31 @@ type Msg =
 
 let init() = 
   {
-    curAmount = 0
-    raiseAmount = 1
     business =  Business.init()
     manu = Manufacturing.init()
   },Cmd.none
 open Fable.React
 open Fable.React.Props
 
+
+
+let handleShared  (msg:Shared.Msg) (state:Model)=
+  match msg with
+  |Shared.Nop-> state
+  |Shared.ClipCreated -> {state with business = {state.business with unsold = state.business.unsold + 1 }}
+  |Shared.PurchaseRequested amount-> {state with business = Business.buy state.business amount} 
+
 // UPDATE
-let update (msg:Msg) (state:Model) =
+let update (msg:Msg) (state:Model) :Model * Cmd<Msg>=
+    let buy cost= 
+      Business.buy state.business cost
     printfn "Update!"
     //<@state.curAmount@>
     match msg with
-    | Increment -> {state with curAmount = state.curAmount + state.raiseAmount},Cmd.none
     | Business b ->{state with business = Business.update b state.business},Cmd.none
-    | Manufact manu->state,Cmd.none 
-    | Tick->{state with curAmount = state.curAmount + 1},Cmd.none 
+    | Manufact man-> let (model,sharedMsg) =((Manufacturing.update) man (state.manu))
+                     {state with manu =model; }|> handleShared sharedMsg, Cmd.none
+    | Tick->{state with business = Business.update Business.TimeTick state.business},Cmd.none//{state with curAmount = state.curAmount + 1},Cmd.none 
     //| TextChange -> printfn "Text change!"; {state with curAmount = state.curAmount + state.raiseAmount},Cmd.none
 
 let thousands(x:string) = 
@@ -53,11 +58,11 @@ let view state dispatch =
   div [ Style[ Width 300] ]
       [ 
         //myeditor
-        h2 [] [ str (sprintf "Paperclips: %A" state.curAmount) ]
-        h2 [] [ str (sprintf "Paperclips: %A" (thousands (string state.curAmount))) ]
-        button [ OnClick (fun _ -> dispatch Increment) ] [ str "make Paperclip" ] 
+        //h2 [] [ str (sprintf "Paperclips: %A" state.curAmount) ]
+        h2 [] [ str (sprintf "Paperclips: %A" (thousands (string state.manu.clips))) ]
+        button [Disabled (state.manu.wireLeft = 0) ;OnClick (fun _ -> dispatch (Manufact Manufacturing.Msg.Increment)) ] [ str "make Paperclip" ] 
         Business.view state.business (toDispatch Business) 
-        Manufacturing.view (state.manu) (toDispatch Manufact)
+        Manufacturing.view (state.manu) (toDispatch Manufact) state.business.funds
       ]
 open Fable.Reaction
 open Elmish.React
@@ -70,7 +75,7 @@ let ticker (disp:Dispatch<Msg>) =
   //Async.RunSynchronously ((AsyncRx.interval 10 10).SubscribeAsync(fun t -> async{disp (Tick)} ))
   let rec infiniteHello() =
     async {
-        do! Async.Sleep 1000
+        do! Async.Sleep 100
         disp Tick
         return! infiniteHello()
     }

@@ -3,6 +3,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Shared.fs" />
     <Compile Include="Business.fs" />
     <Compile Include="Manufacturing.fs" />
     <Compile Include="MarkupEditor.fs" />

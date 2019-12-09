@@ -8,6 +8,8 @@ type Model ={
     clipsPerSecond: int
     wireLeft: int
     wireCost : float
+    wirePriceTicks: float
+    wireBasePrice:float
 }
 
 type Msg =
@@ -21,14 +23,26 @@ let init()=
         clipsPerSecond = 0
         wireLeft = 0
         wireCost = 10.0
+        wirePriceTicks = 0.0
+        wireBasePrice = 0.12
     }
-
+let r = System.Random()
+let adjustWirePrice model = 
+    
+    if (r.NextDouble() < 0.015 )
+    then
+        let wireAdjust = 6.0 * (sin model.wirePriceTicks)
+        let wireCost = ceil (model.wireBasePrice + wireAdjust)
+        {model with wirePriceTicks = model.wirePriceTicks + 2.0
+                    wireCost = wireCost}        
+    else
+        {model with wirePriceTicks = model.wirePriceTicks + 1.0}
 
 let update msg model = 
     match msg with 
     |BoughtMoreWire -> {model with wireLeft = model.wireLeft + 1000}
                         , Shared.PurchaseRequested model.wireCost
-    |Tick ->model, Shared.Nop
+    |Tick -> adjustWirePrice model, Shared.Nop
     |Increment -> {model with clips = model.clips + 1
                               wireLeft = model.wireLeft - 1}, Shared.ClipCreated
 

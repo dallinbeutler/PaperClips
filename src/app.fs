@@ -38,7 +38,9 @@ let update (msg:Msg) (state:Model) :Model * Cmd<Msg>=
     | Business b ->{state with business = Business.update b state.business},Cmd.none
     | Manufact man-> let (model,sharedMsg) =((Manufacturing.update) man (state.manu))
                      {state with manu =model; }|> handleShared sharedMsg, Cmd.none
-    | Tick->{state with business = Business.update Business.TimeTick state.business},Cmd.none//{state with curAmount = state.curAmount + 1},Cmd.none 
+    | Tick->let (man,shared) = Manufacturing.update Manufacturing.Tick state.manu 
+            {state with business = Business.update Business.TimeTick state.business
+                        manu = man}|> handleShared shared,Cmd.none//{state with curAmount = state.curAmount + 1},Cmd.none 
     //| TextChange -> printfn "Text change!"; {state with curAmount = state.curAmount + state.raiseAmount},Cmd.none
 
 let thousands(x:string) = 

@@ -29,12 +29,16 @@ let init()=
 let r = System.Random()
 let adjustWirePrice model = 
     
+    let wireBPrice = if (model.wirePriceTicks> 250.0 && model.wireBasePrice>15.0)
+                     then model.wireBasePrice * 0.999
+                     else model.wireBasePrice
     if (r.NextDouble() < 0.015 )
     then
         let wireAdjust = 6.0 * (sin model.wirePriceTicks)
-        let wireCost = ceil (model.wireBasePrice + wireAdjust)
+        let wireCost = ceil (wireBPrice + wireAdjust)
         {model with wirePriceTicks = model.wirePriceTicks + 2.0
-                    wireCost = wireCost}        
+                    wireBasePrice  = wireBPrice
+                    wireCost       = wireCost}        
     else
         {model with wirePriceTicks = model.wirePriceTicks + 1.0}
 
@@ -57,7 +61,7 @@ let view state dispatch money=
             button [Disabled (state.wireCost > money)  ;OnClick(fun _-> dispatch BoughtMoreWire ) ][str "wire"]
             label [][str (sprintf " %i inches" state.wireLeft )]
         ]
-        p [][str (sprintf " Cost: $ %f" state.wireCost)]
+        p [][str (sprintf " Cost: $ %0.00f" state.wireCost)]
         br[]
         
 
